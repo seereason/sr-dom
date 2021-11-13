@@ -1,0 +1,57 @@
+cabal-version:       2.2
+name:                sr-dom
+version:             0.1
+synopsis:            Browser DOM interface GHCJS
+homepage:            github.com/seereason/sr-dom
+license:             BSD-3-Clause
+license-file:        LICENSE
+author:              Clifford Beshers
+maintainer:          Clifford Beshers <clifford.beshers@gmail.com>
+category:            Web
+extra-source-files:  CHANGELOG.md, README.md
+
+flag Debug
+     Description: Enable debug output
+     Default: False
+     Manual: True
+
+library
+  if impl (ghcjs)
+     Buildable: True
+     hs-source-dirs:      src
+     default-language:    Haskell2010
+     Default-Extensions:  CPP
+     exposed-modules:     SeeReason.DOM
+     ghcjs-options:       -Wincomplete-patterns
+     if flag(Debug)
+       cpp-options: "-DDEBUG_CLIENT"
+     build-depends:
+       aeson,
+       base >=4.8 && <5,
+       errors,
+       exceptions,
+       ghcjs-base,
+       ghcjs-dom,
+       ghcjs-dom-jsffi,
+       acme-iot,
+       lens,
+       mtl,
+       safe,
+       stm,
+       text,
+       time,
+       transformers,
+       type-level-sets
+
+executable sr-dom-test-client
+  default-language:    Haskell2010
+  if impl (ghcjs)
+     Buildable: True
+  else
+     Buildable: False
+  hs-source-dirs:      tests
+  main-is:             DOMTest.hs
+  GHCJS-OPTIONS:       -Wno-missing-home-modules
+  default-extensions:  OverloadedStrings, ScopedTypeVariables, TypeFamilies, ConstraintKinds
+  build-depends:       base
+
