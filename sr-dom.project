@@ -1,0 +1,6 @@
+packages: ./sr-dom.cabal
+
+compiler: ghcjs
+
+program-options
+     ghcjs-options: -DGHCJS_GC_INTERVAL=60000
