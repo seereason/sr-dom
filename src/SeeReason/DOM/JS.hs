@@ -3,7 +3,13 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
-module SeeReason.DOM.JS where
+module SeeReason.DOM.JS
+  ( createElement
+  , createTextNode
+  , body
+  , document
+  , appendChild
+  ) where
 
 import Control.Monad.Trans
 import SeeReason.DOM.Monad
@@ -33,6 +39,13 @@ foreign import javascript unsafe "$r = ($1).createElement($2)"
 createElement :: ToJSString tag => Document -> tag -> DOM Element
 createElement doc tag = DOM $ do
   liftIO $ js_createElement doc (toJSString tag)
+
+foreign import javascript unsafe "$r = ($1).createTextNode($2)"
+  js_createTextNode :: Document -> JSString -> IO DOM.Element
+
+createTextNode :: ToJSString t => Document -> t -> DOM Element
+createTextNode doc t = DOM $ do
+  liftIO $ js_createTextNode doc (toJSString t)
 
 foreign import javascript unsafe "$r = document"
   js_document :: IO Document
