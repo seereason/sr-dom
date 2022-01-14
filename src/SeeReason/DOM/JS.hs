@@ -7,6 +7,10 @@ module SeeReason.DOM.JS
   ( createElement
   , createTextNode
   , getElementById
+  , setAttribute
+  , removeAttribute
+  , setProperty
+  , deleteProperty
   , body
   , document
   , appendChild
@@ -55,6 +59,40 @@ createTextNode doc t = DOM $ do
 
 foreign import javascript unsafe "$r = ($1).createTextNode($2)"
   js_createTextNode :: Document -> JSString -> IO DOM.Element
+
+-- | invokes document.setAttribute(name, value)
+setAttribute :: ToJSString t => Element -> t -> t -> DOM Element
+setAttribute e name value = DOM $ do
+  liftIO $ js_setAttribute e (toJSString name) (toJSString value)
+  return e
+foreign import javascript unsafe "($1).setAttribute($2,$3)"
+  js_setAttribute :: Element -> JSString -> JSString -> IO ()
+
+-- | invokes document.removeAttribute(name)
+removeAttribute :: ToJSString t => Element -> t -> DOM Element
+removeAttribute e name = DOM $ do
+  liftIO $ js_removeAttribute e (toJSString name)
+  return e
+foreign import javascript unsafe "($1).removeAttribute($2)"
+  js_removeAttribute :: Element -> JSString -> IO ()
+
+-- | property assignment specialized to Elements.
+-- This probably is unnecessary, but it is convenient to have a
+-- parallel to setAttribute.
+setProperty :: (ToJSString t, ToJSString v) => Element -> t -> v -> DOM Element
+setProperty e name value = DOM $ do
+  liftIO $ js_setProperty e (toJSString name) (toJSString value)
+  return e
+foreign import javascript unsafe "($1)[$2]=($3)"
+  js_setProperty :: Element -> JSString -> JSString -> IO ()
+
+-- | invokes delete e[name]
+deleteProperty :: (ToJSString s) => Element -> s -> DOM Element
+deleteProperty e name = DOM $ do
+  liftIO $ js_deleteProperty e (toJSString name)
+  return e
+foreign import javascript unsafe "delete ($1)[$2]"
+  js_deleteProperty :: Element -> JSString -> IO ()
 
 -- | invokes document
 document :: DOM Document
