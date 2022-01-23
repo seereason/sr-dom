@@ -51,7 +51,6 @@ createElement doc tag = DOM $ do
 foreign import javascript unsafe "$r = ($1).createElement($2)"
   js_createElement :: Document -> JSString -> IO DOM.Element
 
-
 -- | invokes document.createTextNode(text)
 createTextNode :: ToJSString t => Document -> t -> DOM Element
 createTextNode doc t = DOM $ do
