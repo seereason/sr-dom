@@ -19,8 +19,9 @@ module SeeReason.DOM.JS
 import Control.Monad.Trans
 import SeeReason.DOM.Monad
 
-import GHCJS.DOM.Types as DOM (Document, Element, EventTarget, IsEventTarget, toEventTarget)
-import GHCJS.DOM.Event as DOM (Event(..), IsEvent, toEvent)
+import GHCJS.DOM.Types as GD (Document, Element, EventTarget, IsEventTarget, toEventTarget)
+import qualified GHCJS.DOM.MouseEvent as GD (MouseEvent(..), getButton, getClientX, getClientY, getScreenX, getScreenY)
+import GHCJS.DOM.Event as GD (Event(..), IsEvent, toEvent)
 import GHCJS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
 import GHCJS.Foreign
 import GHCJS.Marshal
@@ -42,14 +43,14 @@ getElementById doc ident = DOM $ do
   liftIO $ js_getElementById doc (toJSString ident)
 
 foreign import javascript unsafe "$r = ($1).getElementById($2)"
-  js_getElementById :: Document -> JSString -> IO DOM.Element
+  js_getElementById :: Document -> JSString -> IO Element
 
 -- | invokes document.createElement(tag)
 createElement :: ToJSString tag => Document -> tag -> DOM Element
 createElement doc tag = DOM $ do
   liftIO $ js_createElement doc (toJSString tag)
 foreign import javascript unsafe "$r = ($1).createElement($2)"
-  js_createElement :: Document -> JSString -> IO DOM.Element
+  js_createElement :: Document -> JSString -> IO Element
 
 -- | invokes document.createTextNode(text)
 createTextNode :: ToJSString t => Document -> t -> DOM Element
@@ -57,7 +58,7 @@ createTextNode doc t = DOM $ do
   liftIO $ js_createTextNode doc (toJSString t)
 
 foreign import javascript unsafe "$r = ($1).createTextNode($2)"
-  js_createTextNode :: Document -> JSString -> IO DOM.Element
+  js_createTextNode :: Document -> JSString -> IO Element
 
 -- | invokes document.setAttribute(name, value)
 setAttribute :: ToJSString t => Element -> t -> t -> DOM Element
@@ -143,14 +144,14 @@ foreign import javascript unsafe
 -- TODO support all these options correctly, with documentation and tests
 
 eventTargetAddEventListener :: IsEventTarget a =>  a -> JSString -> Bool
-                               -> (a -> DOM.Event -> IO ()) -> DOM (DOM ())
+                               -> (a -> GD.Event -> IO ()) -> DOM (DOM ())
 eventTargetAddEventListener obj eventName bubble user =
   wrap (eventTargetAddEventListener' obj eventName bubble user)
   where wrap = dom . fmap dom
         dom = DOM . liftIO
 
 eventTargetAddEventListener' :: IsEventTarget a =>  a -> JSString -> Bool
-                               -> (a -> DOM.Event -> IO ()) -> IO (IO ())
+                               -> (a -> GD.Event -> IO ()) -> IO (IO ())
 eventTargetAddEventListener' obj eventName bubble user = do
     -- putStrLn "Alderon.MicroDOM.eventTargetAddEventListener"
     callback <- syncCallback1 ContinueAsync $ \e -> user obj (Event e)
@@ -168,14 +169,14 @@ eventTargetAddEventListener' obj eventName bubble user = do
         releaseCallback callback
 
 eventTargetAddEventListenerOpt :: IsEventTarget a =>  a -> JSString -> Bool -> Bool -> Bool
-                               -> (a -> DOM.Event -> IO ()) -> DOM (DOM ())
+                               -> (a -> GD.Event -> IO ()) -> DOM (DOM ())
 eventTargetAddEventListenerOpt obj eventName capture once passive user =
   wrap (eventTargetAddEventListenerOpt' obj eventName capture once passive user)
   where wrap = dom . fmap dom
         dom = DOM . liftIO
 
 eventTargetAddEventListenerOpt' :: IsEventTarget a =>  a -> JSString -> Bool -> Bool -> Bool
-                               -> (a -> DOM.Event -> IO ()) -> IO (IO ())
+                               -> (a -> GD.Event -> IO ()) -> IO (IO ())
 eventTargetAddEventListenerOpt' obj eventName capture once passive user = do
     callback <- syncCallback1 ContinueAsync $ \e -> user obj (Event e)
     addEventListenerOpt
