@@ -19,8 +19,8 @@ module SeeReason.DOM.JS
 import Control.Monad.Trans
 import SeeReason.DOM.Monad
 
-import GHCJS.DOM.Types as DOM (Document, Element) -- (Element, Event, IsEvent)
-import GHCJS.DOM.Event (Event, IsEvent, toEvent)
+import GHCJS.DOM.Types as DOM (Document, Element, EventTarget, IsEventTarget, toEventTarget)
+import GHCJS.DOM.Event as DOM (Event(..), IsEvent, toEvent)
 import GHCJS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
 import GHCJS.Foreign
 import GHCJS.Marshal
@@ -117,3 +117,76 @@ foreign import javascript unsafe "$1.appendChild($2)"
    js_appendChild :: Element -> Element -> IO ()
 
 
+#if __GHCJS__
+foreign import javascript unsafe
+        "$1.addEventListener($2, $3, $4)"
+        addEventListener ::
+        EventTarget -> JSString -> Callback a -> Bool -> IO ()
+
+foreign import javascript unsafe
+        "$1.removeEventListener($2, $3, $4)"
+        removeEventListener ::
+        EventTarget -> JSString -> Callback a -> Bool -> IO Bool
+
+foreign import javascript unsafe
+        "$1.addEventListener($2, $3, { capture: $4, once: $5, passive: $6})"
+        addEventListenerOpt ::
+        EventTarget -> JSString -> Callback a -> Bool -> Bool -> Bool -> IO ()
+
+foreign import javascript unsafe
+        "$1.removeEventListener($2, $3, { capture: $4, once: $5, passive: $6})"
+        removeEventListenerOpt ::
+        EventTarget -> JSString -> Callback a -> Bool -> Bool -> Bool -> IO Bool
+#endif
+
+
+-- TODO support all these options correctly, with documentation and tests
+
+eventTargetAddEventListener :: IsEventTarget a =>  a -> JSString -> Bool
+                               -> (a -> DOM.Event -> IO ()) -> DOM (DOM ())
+eventTargetAddEventListener obj eventName bubble user =
+  wrap (eventTargetAddEventListener' obj eventName bubble user)
+  where wrap = dom . fmap dom
+        dom = DOM . liftIO
+
+eventTargetAddEventListener' :: IsEventTarget a =>  a -> JSString -> Bool
+                               -> (a -> DOM.Event -> IO ()) -> IO (IO ())
+eventTargetAddEventListener' obj eventName bubble user = do
+    -- putStrLn "Alderon.MicroDOM.eventTargetAddEventListener"
+    callback <- syncCallback1 ContinueAsync $ \e -> user obj (Event e)
+    addEventListener
+        (toEventTarget obj)
+        eventName
+        callback
+        bubble
+    return $ do
+        removeEventListener
+            (toEventTarget obj)
+            eventName
+            callback
+            bubble
+        releaseCallback callback
+
+eventTargetAddEventListenerOpt :: IsEventTarget a =>  a -> JSString -> Bool -> Bool -> Bool
+                               -> (a -> DOM.Event -> IO ()) -> DOM (DOM ())
+eventTargetAddEventListenerOpt obj eventName capture once passive user =
+  wrap (eventTargetAddEventListenerOpt' obj eventName capture once passive user)
+  where wrap = dom . fmap dom
+        dom = DOM . liftIO
+
+eventTargetAddEventListenerOpt' :: IsEventTarget a =>  a -> JSString -> Bool -> Bool -> Bool
+                               -> (a -> DOM.Event -> IO ()) -> IO (IO ())
+eventTargetAddEventListenerOpt' obj eventName capture once passive user = do
+    callback <- syncCallback1 ContinueAsync $ \e -> user obj (Event e)
+    addEventListenerOpt
+        (toEventTarget obj)
+        eventName
+        callback
+        capture once passive
+    return $ do
+        removeEventListenerOpt
+            (toEventTarget obj)
+            eventName
+            callback
+            capture once passive
+        releaseCallback callback
