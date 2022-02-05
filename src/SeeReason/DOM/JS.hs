@@ -14,6 +14,7 @@ module SeeReason.DOM.JS
   , body
   , document
   , appendChild
+  , eventTargetAddEventListener
   ) where
 
 import Control.Monad.Trans
@@ -143,10 +144,10 @@ foreign import javascript unsafe
 
 -- TODO support all these options correctly, with documentation and tests
 
-eventTargetAddEventListener :: IsEventTarget a =>  a -> JSString -> Bool
-                               -> (a -> GD.Event -> IO ()) -> DOM (DOM ())
+eventTargetAddEventListener :: (ToJSString s, IsEventTarget e) =>  e -> s -> Bool
+                               -> (e -> GD.Event -> IO ()) -> DOM (DOM ())
 eventTargetAddEventListener obj eventName bubble user =
-  wrap (eventTargetAddEventListener' obj eventName bubble user)
+  wrap (eventTargetAddEventListener' obj (toJSString eventName) bubble user)
   where wrap = dom . fmap dom
         dom = DOM . liftIO
 
