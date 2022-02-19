@@ -80,12 +80,12 @@ foreign import javascript unsafe "($1).removeAttribute($2)"
 -- | property assignment specialized to Elements.
 -- This probably is unnecessary, but it is convenient to have a
 -- parallel to setAttribute.
-setProperty :: (ToJSString t, ToJSString v) => Element -> t -> v -> DOM Element
+setProperty :: (ToJSString t, PToJSVal v) => Element -> t -> v -> DOM Element
 setProperty e name value = DOM $ do
-  liftIO $ js_setProperty e (toJSString name) (toJSString value)
+  liftIO $ js_setProperty e (toJSString name) (pToJSVal value)
   return e
 foreign import javascript unsafe "($1)[$2]=($3)"
-  js_setProperty :: Element -> JSString -> JSString -> IO ()
+  js_setProperty :: Element -> JSString -> JSVal -> IO ()
 
 -- | invokes delete e[name]
 deleteProperty :: (ToJSString s) => Element -> s -> DOM Element
