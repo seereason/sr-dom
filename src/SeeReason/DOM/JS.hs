@@ -13,23 +13,24 @@ module SeeReason.DOM.JS
   , deleteProperty
   , body
   , document
+  , window
   , appendChild
   , eventTargetAddEventListener
   ) where
 
 import Control.Monad.Trans
-import SeeReason.DOM.Monad
+import Control.Monad.Except
+import SeeReason.DOM.Types (DOM(..), DH_Error(..), asText)
 
-import GHCJS.DOM.Types as GD (Document, Element, EventTarget, IsEventTarget, toEventTarget)
+import GHCJS.DOM.Types as GD (Document, Element, EventTarget, IsEventTarget, toEventTarget, IsGObject, FromJSString, ToJSString)
 import qualified GHCJS.DOM.MouseEvent as GD (MouseEvent(..), getButton, getClientX, getClientY, getScreenX, getScreenY)
 import GHCJS.DOM.Event as GD (Event(..), IsEvent, toEvent)
 import GHCJS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
 import GHCJS.Foreign
-import GHCJS.Marshal
-import GHCJS.Types
+import GHCJS.Marshal (ToJSVal)
 import GHCJS.Marshal.Pure (PToJSVal(..), PFromJSVal(..))
-
-import GHCJS.Types (JSVal)
+import GHCJS.Nullable (Nullable(..), nullableToMaybe)
+import GHCJS.Types (JSVal, JSString)
 import JavaScript.Object (Object, getProp)
 import JavaScript.Cast
 
@@ -96,12 +97,42 @@ foreign import javascript unsafe "delete ($1)[$2]"
   js_deleteProperty :: Element -> JSString -> IO ()
 
 -- | invokes document
+window :: DOM Window
+window = DOM $ do
+  liftIO $ js_window
+
+foreign import javascript unsafe "$r = window"
+  js_window :: IO Window
+
+-- | invokes document
 document :: DOM Document
 document = DOM $ do
   liftIO $ js_document
 
 foreign import javascript unsafe "$r = document"
   js_document :: IO Document
+
+-- | invokes document
+document' :: DOM Document
+document' = do
+  w <- window
+  w .: "document"
+
+(.:) :: (IsGObject o, PToJSVal o, ToJSString p, PFromJSVal r) => o -> p -> DOM r
+(.:) = getProperty
+
+getProperty :: (IsGObject o, PToJSVal o, ToJSString p, PFromJSVal a) => o -> p -> DOM a
+getProperty obj prop = DOM $ do
+  v <- liftIO $ js_getProp (pToJSVal obj) (toJSString prop)
+  let v' = (nullableToMaybe . Nullable) v
+  case v' of
+    Nothing -> throwError (DH_PropertyNotFound (asText prop))
+    Just ja -> return (pFromJSVal ja)
+
+foreign import javascript unsafe "$r = $1[$2]"
+  js_getProp :: JSVal -> JSString -> IO JSVal
+
+
 
 -- | invokes document.body
 body :: Document -> DOM Element

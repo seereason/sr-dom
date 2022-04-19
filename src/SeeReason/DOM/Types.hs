@@ -1,11 +1,15 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving  #-}
 {-# LANGUAGE ConstraintKinds, ExtendedDefaultRules, OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE MultiParamTypeClasses#-}
+
 
 module SeeReason.DOM.Types where
 
+import Control.Exception
 import Control.Monad.Except
 import Control.Monad (void, when)
 
@@ -14,7 +18,7 @@ import Data.Aeson (ToJSON(toJSON))
 import Data.Proxy
 import Data.String
 import Data.Text as T (Text, concat, pack)
-import GHCJS.DOM.Types as DOM -- (Element, Event, IsEvent)
+import qualified GHCJS.DOM.Types as DOM -- (Element, Event, IsEvent)
 import GHCJS.DOM.Event (Event, IsEvent, toEvent)
 import GHCJS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
 import GHCJS.Foreign
@@ -32,8 +36,24 @@ import qualified GHCJS.DOM as DOM (currentWindowUnchecked)
 import GHCJS.DOM.Types (FromJSString, ToJSString, FromJSVal(..), ToJSVal(..), Window, toJSString, fromJSString, fromMaybeJSString, castTo)
 import GHCJS.Types (JSString, jsval, JSException(..))
 import GHCJS.Nullable (Nullable(..), nullableToMaybe)
+import System.IO
 
+data DH_Error =
+  DH_Error |
+  DH_PropertyNotFound Text |
+  DH_IOException IOException deriving (Show)
 
+asText :: ToJSString a => a -> Text
+asText = fromJSString . toJSString
+
+newtype DOM a = DOM { unDOM :: ExceptT DH_Error IO a } deriving (Functor, Applicative, Monad)
+
+instance MonadIO DOM where
+  liftIO = DOM . lift
+
+instance MonadError DH_Error DOM where
+  throwError e = DOM (throwError e)
+  catchError m c = DOM (catchError (unDOM m) (\e -> unDOM (c e)))
 
 #if 0
 class JSArgs a where
