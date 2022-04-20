@@ -1,6 +1,6 @@
 cabal-version:       2.2
 name:                sr-dom
-version:             0.1
+version:             0.1.1
 synopsis:            Browser DOM interface GHCJS
 homepage:            github.com/seereason/sr-dom
 license:             BSD-3-Clause
