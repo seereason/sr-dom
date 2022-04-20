@@ -1,6 +1,6 @@
 cabal-version:       2.2
 name:                sr-dom
-version:             0.1
+version:             0.1.1
 synopsis:            Browser DOM interface GHCJS
 homepage:            github.com/seereason/sr-dom
 license:             BSD-3-Clause
@@ -20,6 +20,8 @@ library
      default-language:    Haskell2010
      Default-Extensions:  CPP
      exposed-modules:     SeeReason.DOM, SeeReason.DOM.JS, SeeReason.DOM.Monad, SeeReason.DOM.Types
+     -- exposed-modules:     SeeReason.DOM.Call
+     exposed-modules:     SeeReason.DOM.AlderCompat
      ghcjs-options:       -Wincomplete-patterns
      if flag(Debug)
        cpp-options: "-DDEBUG_CLIENT"
