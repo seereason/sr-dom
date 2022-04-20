@@ -4,7 +4,6 @@ version:             0.1
 synopsis:            Browser DOM interface GHCJS
 homepage:            github.com/seereason/sr-dom
 license:             BSD-3-Clause
-license-file:        LICENSE
 author:              Clifford Beshers
 maintainer:          Clifford Beshers <clifford.beshers@gmail.com>
 category:            Web
