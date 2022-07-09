@@ -40,6 +40,7 @@ import System.IO
 
 data DH_Error =
   DH_Error |
+  DH_DocumentNotReady |
   DH_PropertyNotFound Text |
   DH_IOException IOException deriving (Show)
 

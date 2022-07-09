@@ -16,8 +16,10 @@ module SeeReason.DOM.JS
   , window
   , appendChild
   , eventTargetAddEventListener
+  , waitReady
   ) where
 
+import Control.Concurrent (threadDelay)
 import Control.Monad.Trans
 import Control.Monad.Except
 import SeeReason.DOM.Types (DOM(..), DH_Error(..), asText)
@@ -150,6 +152,22 @@ foreign import javascript unsafe "$1.appendChild($2)"
    js_appendChild :: Element -> Element -> IO ()
 
 
+-- TODO make this fail after some amount of time.
+waitReady :: Document -> DOM ()
+waitReady doc = waitReady' (100,3) doc
+
+-- | waitReady' is the same as waitReady, but accepts a pair integers to configure (delayTime, retryCount)
+waitReady' :: (Int,Int) -> Document -> DOM ()
+waitReady' (_, retryCount) _ | retryCount <= 0 = throwError DH_DocumentNotReady
+waitReady' (delayTime, retryCount) doc = do
+  s <- liftIO $ js_readyState doc
+  case s of
+    "complete" -> pure ()
+    _ -> liftIO (threadDelay delayTime) >> waitReady' (delayTime, pred retryCount) doc
+
+foreign import javascript unsafe "$r = $1[\"readyState\"]"
+  js_readyState :: Document -> IO JSString
+
 #if __GHCJS__
 foreign import javascript unsafe
         "$1.addEventListener($2, $3, $4)"
@@ -223,3 +241,4 @@ eventTargetAddEventListenerOpt' obj eventName capture once passive user = do
             callback
             capture once passive
         releaseCallback callback
+
