@@ -1,3 +1,4 @@
 #!/bin/bash
 
+cabal new-configure --project sr-dom.project
 cabal new-build --project sr-dom.project

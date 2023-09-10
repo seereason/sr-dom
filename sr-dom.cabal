@@ -20,6 +20,7 @@ library
      default-language:    Haskell2010
      Default-Extensions:  CPP
      exposed-modules:     SeeReason.DOM, SeeReason.DOM.JS,  SeeReason.DOM.CallStack, SeeReason.DOM.Monad, SeeReason.DOM.Types
+     exposed-modules:     SeeReason.DOM.GHCJSTypes
      -- exposed-modules:     SeeReason.DOM.Call
      exposed-modules:     SeeReason.DOM.AlderCompat
      ghcjs-options:       -Wincomplete-patterns
@@ -52,5 +53,5 @@ executable sr-dom-test-client
      -- main-is:             DOMTest.hs
      GHCJS-OPTIONS:       -Wno-missing-home-modules
      default-extensions:  OverloadedStrings, ScopedTypeVariables, TypeFamilies, ConstraintKinds
-     build-depends:       base
+     build-depends:       base, containers, sr-dom, text, type-level-sets, forest, mtl
 

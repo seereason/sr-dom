@@ -4,7 +4,8 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
 module SeeReason.DOM.JS
-  ( createElement
+  ( module GHCJS.DOM.Types
+  , createElement
   , createTextNode
   , getElementById
   , setAttribute
@@ -17,9 +18,11 @@ module SeeReason.DOM.JS
   , appendChild
   , eventTargetAddEventListener
   , waitReady
+  , waitForever
   ) where
 
 import Control.Concurrent (threadDelay)
+import Control.Monad (forever)
 import Control.Monad.Trans
 import Control.Monad.Except
 import SeeReason.DOM.Types (DOM(..), DH_Error(..), asText)
@@ -150,6 +153,10 @@ appendChild parent child = DOM . liftIO $ do
   
 foreign import javascript unsafe "$1.appendChild($2)"
    js_appendChild :: Element -> Element -> IO ()
+
+
+waitForever :: MonadIO m => m ()
+waitForever = liftIO $ forever (threadDelay (1000000 * 100000))
 
 
 -- TODO make this fail after some amount of time.

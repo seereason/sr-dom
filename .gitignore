@@ -64,3 +64,5 @@ runtime-depends.nix
 *.xdv
 jssync.sh
 .DS_Store
+shell.nix
+default.nix
