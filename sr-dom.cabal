@@ -5,7 +5,7 @@ synopsis:            Browser DOM interface GHCJS
 homepage:            github.com/seereason/sr-dom
 license:             BSD-3-Clause
 author:              Clifford Beshers
-maintainer:          Clifford Beshers <clifford.beshers@gmail.com>
+maintainer:          Clifford Beshers <beshers@seereason.com>
 category:            Web
 
 flag Debug
