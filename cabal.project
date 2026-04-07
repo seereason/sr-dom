@@ -1,0 +1,6 @@
+packages: .
+
+with-compiler: javascript-unknown-ghcjs-ghc
+
+package *
+  ghc-options: -Wall -Wno-deriving-typeable
