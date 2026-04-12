@@ -13,7 +13,7 @@ import Control.Exception
 import Control.Monad.Except
 import Control.Monad (void, when)
 
-import Control.Monad.Trans (MonadIO(..))
+import Control.Monad.Trans (MonadIO(..), lift)
 import Data.Aeson (ToJSON(toJSON))
 import Data.Proxy
 import Data.String
