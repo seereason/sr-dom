@@ -27,7 +27,7 @@ import SeeReason.DOM.Types (DOM(..), DH_Error(..), asText)
 import GHCJS.DOM.Types as GD (Document, Element, EventTarget, IsEventTarget, toEventTarget, IsGObject, FromJSString, ToJSString)
 import qualified GHCJS.DOM.MouseEvent as GD (MouseEvent(..), getButton, getClientX, getClientY, getScreenX, getScreenY)
 import GHCJS.DOM.Event as GD (Event(..), IsEvent, toEvent)
-import GHCJS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
+import GHC.JS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
 import GHCJS.Foreign
 import GHCJS.Marshal (ToJSVal)
 import GHCJS.Marshal.Pure (PToJSVal(..), PFromJSVal(..))

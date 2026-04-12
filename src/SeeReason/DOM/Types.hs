@@ -20,7 +20,7 @@ import Data.String
 import Data.Text as T (Text, concat, pack)
 import qualified GHCJS.DOM.Types as DOM -- (Element, Event, IsEvent)
 import GHCJS.DOM.Event (Event, IsEvent, toEvent)
-import GHCJS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
+import GHC.JS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
 import GHCJS.Foreign
 import GHCJS.Marshal
 import GHCJS.Types
