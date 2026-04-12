@@ -14,7 +14,7 @@ flag Debug
      Manual: True
 
 library
-  if impl (ghcjs)
+  if arch(javascript)
      Buildable: True
      hs-source-dirs:      src
      default-language:    Haskell2010
@@ -27,21 +27,17 @@ library
        cpp-options: "-DDEBUG_CLIENT"
      build-depends:
        aeson,
-       base >=4.8 && <5,
+       base,
        errors,
        exceptions,
        ghcjs-base,
        ghcjs-dom,
-       ghcjs-dom-jsffi,
-       -- acme-iot,
-       -- lens,
        mtl,
-       -- safe,
-       -- stm,
        text,
-       time,
-       -- transformers,
-       -- type-level-sets
+       time
+
+  if !arch(javascript)
+     Buildable: False
 
 executable sr-dom-test-client
   default-language:    Haskell2010
@@ -51,7 +47,7 @@ executable sr-dom-test-client
      Buildable: True
      GHCJS-OPTIONS:       -Wno-missing-home-modules
      default-extensions:  OverloadedStrings, ScopedTypeVariables, TypeFamilies, ConstraintKinds
-     build-depends:       base, sr-dom
+     build-depends:       base, ghcjs-base, sr-dom
   if !arch(javascript)
      Buildable: False
 
