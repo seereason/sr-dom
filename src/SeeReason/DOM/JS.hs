@@ -169,6 +169,9 @@ foreign import javascript unsafe "$r = $1[\"readyState\"]"
   js_readyState :: Document -> IO JSString
 
 #if __GHCJS__
+
+thisisnotallowed
+  
 foreign import javascript unsafe
         "$1.addEventListener($2, $3, $4)"
         addEventListener ::
