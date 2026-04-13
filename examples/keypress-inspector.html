@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keypress Inspector</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f5f3;
+      color: #1a1a1a;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    h1 { font-size: 1.25rem; font-weight: 500; margin-bottom: 1rem; }
+
+    .toolbar {
+      background: #ebebea;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .toolbar .hint { font-size: 13px; color: #666; flex: 1; }
+
+    .toolbar label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #555;
+      cursor: pointer;
+    }
+
+    button {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 0.5px solid #ccc;
+      background: white;
+      cursor: pointer;
+    }
+    button:hover { background: #f0f0f0; }
+
+    .log-wrap {
+      background: white;
+      border: 0.5px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      max-height: 340px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+    }
+
+    .entry {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+      gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 0.5px solid #eee;
+      font-family: monospace;
+      font-size: 13px;
+      align-items: center;
+    }
+    .entry:last-child { border-bottom: none; }
+
+    .entry.header {
+      font-family: system-ui, sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: #f7f7f6;
+      position: sticky;
+      top: 0;
+    }
+
+    .key-badge {
+      display: inline-block;
+      background: #f0f0ee;
+      border: 0.5px solid #ccc;
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 13px;
+      font-weight: 500;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mod {
+      display: inline-block;
+      font-size: 11px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-right: 3px;
+    }
+    .mod.on  { background: #dbeafe; color: #1e40af; }
+    .mod.off { color: #ccc; }
+
+    .event-type {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-family: system-ui, sans-serif;
+    }
+    .ev-keydown   { background: #dbeafe; color: #1e40af; }
+    .ev-keyup     { background: #dcfce7; color: #166534; }
+    .ev-keypress  { background: #fef9c3; color: #854d0e; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .stat-card {
+      background: #f0f0ee;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .stat-card .label {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 4px;
+    }
+    .stat-card .value {
+      font-size: 20px;
+      font-weight: 500;
+      font-family: monospace;
+    }
+    .stat-card:first-child .value { font-size: 24px; }
+
+    @media (max-width: 600px) {
+      .entry { grid-template-columns: 1fr 1fr 1fr; }
+      .entry span:nth-child(4),
+      .entry span:nth-child(5) { display: none; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Keypress Inspector</h1>
+
+<div class="toolbar">
+  <span class="hint">Press any key to inspect its event data.</span>
+  <label><input type="checkbox" id="chk-keydown" checked> keydown</label>
+  <label><input type="checkbox" id="chk-keyup" checked> keyup</label>
+  <label><input type="checkbox" id="chk-keypress" checked> keypress</label>
+  <button id="btn-clear">clear</button>
+</div>
+
+<div class="log-wrap">
+  <div id="log">
+    <div class="entry header">
+      <span>event</span>
+      <span>key</span>
+      <span>code</span>
+      <span>keyCode / which</span>
+      <span>modifiers</span>
+    </div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat-card"><div class="label">key</div><div class="value" id="stat-key">—</div></div>
+  <div class="stat-card"><div class="label">code</div><div class="value" id="stat-code" style="font-size:15px">—</div></div>
+  <div class="stat-card"><div class="label">keyCode</div><div class="value" id="stat-keycode">—</div></div>
+  <div class="stat-card"><div class="label">charCode</div><div class="value" id="stat-charcode">—</div></div>
+</div>
+
+<script>
+  const log = document.getElementById('log');
+  const MAX_ENTRIES = 50;
+
+  function mod(e, label, prop) {
+    return `<span class="mod ${e[prop] ? 'on' : 'off'}">${label}</span>`;
+  }
+
+  function handleKey(e) {
+    const type = e.type;
+    const chk = document.getElementById('chk-' + type);
+    if (chk && !chk.checked) return;
+
+    const row = document.createElement('div');
+    row.className = 'entry';
+    row.innerHTML = `
+      <span><span class="event-type ev-${type}">${type}</span></span>
+      <span><span class="key-badge">${e.key === ' ' ? 'Space' : (e.key || '—')}</span></span>
+      <span style="color:#666">${e.code || '—'}</span>
+      <span>${e.keyCode ?? '—'} / ${e.which ?? '—'}</span>
+      <span>
+        ${mod(e, '⇧ Shift', 'shiftKey')}
+        ${mod(e, '⌃ Ctrl',  'ctrlKey')}
+        ${mod(e, '⌥ Alt',   'altKey')}
+        ${mod(e, '⌘ Meta',  'metaKey')}
+      </span>
+    `;
+
+    const header = log.querySelector('.header');
+    log.insertBefore(row, header.nextSibling);
+
+    // Trim old entries
+    const entries = log.querySelectorAll('.entry:not(.header)');
+    if (entries.length > MAX_ENTRIES) entries[entries.length - 1].remove();
+
+    // Update stat cards
+    document.getElementById('stat-key').textContent     = e.key === ' ' ? 'Space' : (e.key || '—');
+    document.getElementById('stat-code').textContent    = e.code || '—';
+    document.getElementById('stat-keycode').textContent = e.keyCode ?? '—';
+    document.getElementById('stat-charcode').textContent = e.charCode ?? '—';
+  }
+
+  ['keydown', 'keyup', 'keypress'].forEach(t =>
+    document.addEventListener(t, handleKey)
+  );
+
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    const entries = log.querySelectorAll('.entry:not(.header)');
+    entries.forEach(el => el.remove());
+    ['stat-key','stat-code','stat-keycode','stat-charcode'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
+  });
+</script>
+
+</body>
+</html>
