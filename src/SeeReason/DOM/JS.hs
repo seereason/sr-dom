@@ -16,30 +16,21 @@ module SeeReason.DOM.JS
   , window
   , appendChild
   , eventTargetAddEventListener
+  , eventTargetAddEventListenerOpt
   , waitReady
   ) where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad.Trans
 import Control.Monad.Except
-import SeeReason.DOM.Types (DOM(..), DH_Error(..), asText)
+import SeeReason.DOM.Types (DOM(..), DH_Error(..))
 
-import GHCJS.DOM.Types as GD (Document, Element, EventTarget, IsEventTarget, toEventTarget, IsGObject, FromJSString, ToJSString)
-import qualified GHCJS.DOM.MouseEvent as GD (MouseEvent(..), getButton, getClientX, getClientY, getScreenX, getScreenY)
-import GHCJS.DOM.Event as GD (Event(..), IsEvent, toEvent)
-import GHC.JS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
-import GHCJS.Foreign
-import GHCJS.Marshal (ToJSVal)
-import GHCJS.Marshal.Pure (PToJSVal(..), PFromJSVal(..))
-import GHCJS.Nullable (Nullable(..), nullableToMaybe)
+import GHCJS.DOM.Types as GD (Document, Element, EventTarget, IsEventTarget, toEventTarget, ToJSString)
+import GHCJS.DOM.Event as GD (Event(..))
+import GHC.JS.Foreign.Callback (OnBlocked(..), Callback, releaseCallback, syncCallback1)
+import GHCJS.Marshal.Pure (PToJSVal(..))
 import GHCJS.Types (JSVal, JSString)
-import JavaScript.Object (Object, getProp)
-import JavaScript.Cast
-
-import qualified GHCJS.DOM.History as DOM (pushState)
-import qualified GHCJS.DOM.Window as DOM (getHistory)
-import qualified GHCJS.DOM as DOM (currentWindowUnchecked)
-import GHCJS.DOM.Types (FromJSString, ToJSString, FromJSVal(..), ToJSVal(..), Window, toJSString, fromJSString, fromMaybeJSString, castTo)
+import GHCJS.DOM.Types (Window, toJSString)
 
 -- | invokes document.getElementById(ident)
 getElementById :: ToJSString ident => Document -> ident -> DOM Element
@@ -114,12 +105,7 @@ document = DOM $ do
 foreign import javascript unsafe "$r = document"
   js_document :: IO Document
 
--- | invokes document
-document' :: DOM Document
-document' = do
-  w <- window
-  w .: "document"
-
+#if 0
 (.:) :: (IsGObject o, PToJSVal o, ToJSString p, PFromJSVal r) => o -> p -> DOM r
 (.:) = getProperty
 
@@ -133,7 +119,7 @@ getProperty obj prop = DOM $ do
 
 foreign import javascript unsafe "$r = $1[$2]"
   js_getProp :: JSVal -> JSString -> IO JSVal
-
+#endif
 
 
 -- | invokes document.body
@@ -168,27 +154,25 @@ waitReady' (delayTime, retryCount) doc = do
 foreign import javascript unsafe "$r = $1[\"readyState\"]"
   js_readyState :: Document -> IO JSString
 
-#if __GHCJS__
 
-thisisnotallowed
-  
-foreign import javascript unsafe
-        "$1.addEventListener($2, $3, $4)"
+#if javascript_HOST_ARCH
+foreign import javascript unsafe 
+        "((self,evtype,cb,useCapture) => { return self[\"addEventListener\"](evtype, cb, useCapture); })"
         addEventListener ::
         EventTarget -> JSString -> Callback a -> Bool -> IO ()
 
 foreign import javascript unsafe
-        "$1.removeEventListener($2, $3, $4)"
+        "((self,evtype,cb,useCapture) => { return self[\"removeEventListener\"](evtype,cb,useCapture); })"
         removeEventListener ::
         EventTarget -> JSString -> Callback a -> Bool -> IO Bool
 
 foreign import javascript unsafe
-        "$1.addEventListener($2, $3, { capture: $4, once: $5, passive: $6})"
+        "((self,evtype,cb,capture,once,passive) => { return self[\"addEventListener\"](evtype, cb, { capture: capture, once: once, passive: passive}); })"
         addEventListenerOpt ::
         EventTarget -> JSString -> Callback a -> Bool -> Bool -> Bool -> IO ()
 
 foreign import javascript unsafe
-        "$1.removeEventListener($2, $3, { capture: $4, once: $5, passive: $6})"
+        "((self,evtype,cb,capture,once,passive) => { return self[\"removeEventListener\"](evtype, cb, { capture: capture, once: once, passive: passive}); })"
         removeEventListenerOpt ::
         EventTarget -> JSString -> Callback a -> Bool -> Bool -> Bool -> IO Bool
 #endif
@@ -214,11 +198,11 @@ eventTargetAddEventListener' obj eventName bubble user = do
         callback
         bubble
     return $ do
-        removeEventListener
-            (toEventTarget obj)
-            eventName
-            callback
-            bubble
+        _ <- removeEventListener
+             (toEventTarget obj)
+             eventName
+             callback
+             bubble
         releaseCallback callback
 
 eventTargetAddEventListenerOpt :: IsEventTarget a =>  a -> JSString -> Bool -> Bool -> Bool
@@ -238,10 +222,9 @@ eventTargetAddEventListenerOpt' obj eventName capture once passive user = do
         callback
         capture once passive
     return $ do
-        removeEventListenerOpt
-            (toEventTarget obj)
-            eventName
-            callback
-            capture once passive
+        _ <- removeEventListenerOpt
+             (toEventTarget obj)
+             eventName
+             callback
+             capture once passive
         releaseCallback callback
-
