@@ -30,8 +30,7 @@ library
        base,
        errors,
        exceptions,
-       ghcjs-base,
-       ghcjs-dom,
+       jsaddle-dom,
        mtl,
        text,
        time
@@ -47,7 +46,7 @@ executable sr-dom-test-client
      Buildable: True
      GHCJS-OPTIONS:       -Wno-missing-home-modules
      default-extensions:  OverloadedStrings, ScopedTypeVariables, TypeFamilies, ConstraintKinds
-     build-depends:       base, ghcjs-base, sr-dom
+     build-depends:       base, sr-dom
   if !arch(javascript)
      Buildable: False
 
