@@ -30,7 +30,8 @@ library
        base,
        errors,
        exceptions,
-       jsaddle-dom,
+       ghcjs-base >= 0.8.0.2,
+       ghcjs-dom-javascript >= 0.9.9.3,
        mtl,
        text,
        time
@@ -49,4 +50,3 @@ executable sr-dom-test-client
      build-depends:       base, sr-dom
   if !arch(javascript)
      Buildable: False
-
