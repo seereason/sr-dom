@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
+#if __GHCJS__
 {-# LANGUAGE JavaScriptFFI            #-}
+#endif
 -- | JavaScript marshalling. This module is pretty unsafe. Be careful.
 module SeeReason.DOM.AlderCompat () where
 

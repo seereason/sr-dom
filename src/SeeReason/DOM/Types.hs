@@ -1,5 +1,8 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+#if __GHCJS__
+{-# LANGUAGE JavaScriptFFI #-}
+#endif
 {-# LANGUAGE GeneralizedNewtypeDeriving  #-}
 {-# LANGUAGE ConstraintKinds, ExtendedDefaultRules, OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -20,7 +23,11 @@ import Data.String
 import Data.Text as T (Text, concat, pack)
 import qualified GHCJS.DOM.Types as DOM -- (Element, Event, IsEvent)
 import GHCJS.DOM.Event (Event, IsEvent, toEvent)
+#if __GHCJS__
+import GHCJS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
+#elif defined(javascript_HOST_ARCH)
 import GHC.JS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
+#endif
 import GHCJS.Foreign
 import GHCJS.Marshal
 import GHCJS.Types

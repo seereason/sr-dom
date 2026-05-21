@@ -1,5 +1,9 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI, ConstraintKinds, ExtendedDefaultRules, OverloadedStrings #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+#if __GHCJS__
+{-# LANGUAGE JavaScriptFFI #-}
+#endif
+{-# LANGUAGE ConstraintKinds, ExtendedDefaultRules, OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
@@ -14,7 +18,11 @@ import SeeReason.DOM.Types (DOM(..))
 import GHCJS.DOM.Types as GD (Document, Element, EventTarget, IsEventTarget, toEventTarget, IsGObject, FromJSString, ToJSString)
 import qualified GHCJS.DOM.MouseEvent as GD (MouseEvent(..), getButton, getClientX, getClientY, getScreenX, getScreenY)
 import GHCJS.DOM.Event as GD (Event(..), IsEvent, toEvent)
+#if __GHCJS__
+import GHCJS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
+#elif defined(javascript_HOST_ARCH)
 import GHC.JS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
+#endif
 import GHCJS.Foreign
 import GHCJS.Marshal (ToJSVal)
 import GHCJS.Marshal.Pure (PToJSVal(..), PFromJSVal(..))
@@ -71,15 +79,34 @@ instance (PToJSVal a, PToJSVal b, PToJSVal c) => JSArgs (a, b, c) where
         return (pFromJSVal res)
 
 
+#if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]();"
     apply0 :: IsGObject o => o -> JSString -> IO JSVal
+#elif defined(javascript_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2) => { return $1[$2](); })"
+    apply0 :: IsGObject o => o -> JSString -> IO JSVal
+#endif
 
+#if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]($3);"
     apply1 :: IsGObject o => o -> JSString -> JSVal -> IO JSVal
+#elif defined(javascript_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2,$3) => { return $1[$2]($3); })"
+    apply1 :: IsGObject o => o -> JSString -> JSVal -> IO JSVal
+#endif
 
+#if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]($3, $4);"
     apply2 :: IsGObject o => o -> JSString -> JSVal -> JSVal -> IO JSVal
+#elif defined(javascript_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2,$3,$4) => { return $1[$2]($3,$4); })"
+    apply2 :: IsGObject o => o -> JSString -> JSVal -> JSVal -> IO JSVal
+#endif
 
+#if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]($3, $4, $5);"
     apply3 :: IsGObject o => o -> JSString -> JSVal -> JSVal -> JSVal -> IO JSVal
-
+#elif defined(javascript_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { return $1[$2]($3,$4,$5); })"
+    apply3 :: IsGObject o => o -> JSString -> JSVal -> JSVal -> JSVal -> IO JSVal
+#endif
