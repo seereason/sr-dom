@@ -130,19 +130,46 @@ apply obj fun b = liftIO $ do
     res <- applyFunction obj (toJSString fun) b
     fromJSValue res
 
+#if __GHCJS__
 foreign import javascript unsafe "$r = window;"
     getWindow :: JSRef a
+#elif defined(javascript_HOST_ARCH)
+foreign import javascript unsafe "(() => { return window; })"
+    getWindow :: JSRef a
+#endif
 
+#if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]();"
     apply0 :: JSRef a -> JSString -> IO (JSRef b)
+#elif defined(javascript_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2) => { return $1[$2]() });"
+    apply0 :: JSRef a -> JSString -> IO (JSRef b)
+#endif
 
+#if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]($3);"
     apply1 :: JSRef a -> JSString -> JSRef b -> IO (JSRef c)
+#elif defined(javascript_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2,$3) => { return $1[$2]($3); })"
+    apply1 :: JSRef a -> JSString -> JSRef b -> IO (JSRef c)
+#endif
 
+#if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]($3, $4);"
     apply2 :: JSRef a -> JSString -> JSRef b -> JSRef c -> IO (JSRef d)
+#elif defined(javascript_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2,$3,$4) => { return $1[$2]($3, $4); })"
+    apply2 :: JSRef a -> JSString -> JSRef b -> JSRef c -> IO (JSRef d)
+#endif
 
+#if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]($3, $4, $5);"
     apply3 :: JSRef a -> JSString
            -> JSRef b -> JSRef c -> JSRef d -> IO (JSRef e)
+#elif defined(javascript_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { return $1[$2]($3, $4, $5); })"
+    apply3 :: JSRef a -> JSString
+           -> JSRef b -> JSRef c -> JSRef d -> IO (JSRef e)
+#endif
+
 #endif
