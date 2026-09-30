@@ -6,6 +6,9 @@
 -- | JavaScript marshalling. This module is pretty unsafe. Be careful.
 module SeeReason.DOM.AlderCompat () where
 
+#if defined(wasm32_HOST_ARCH)
+import GHCJS.Types (JSString(..))
+#endif
 import SeeReason.DOM.JS
 
 call = undefined
@@ -133,32 +136,48 @@ apply obj fun b = liftIO $ do
 #if __GHCJS__
 foreign import javascript unsafe "$r = window;"
     getWindow :: JSRef a
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "(() => { return window; })()"
+#else
 foreign import javascript unsafe "(() => { return window; })"
+#endif
     getWindow :: JSRef a
 #endif
 
 #if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]();"
     apply0 :: JSRef a -> JSString -> IO (JSRef b)
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "return $1[$2]();"
+#else
 foreign import javascript unsafe "(($1,$2) => { return $1[$2]() });"
+#endif
     apply0 :: JSRef a -> JSString -> IO (JSRef b)
 #endif
 
 #if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]($3);"
     apply1 :: JSRef a -> JSString -> JSRef b -> IO (JSRef c)
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2,$3) => { return $1[$2]($3); })($1,$2,$3)"
+#else
 foreign import javascript unsafe "(($1,$2,$3) => { return $1[$2]($3); })"
+#endif
     apply1 :: JSRef a -> JSString -> JSRef b -> IO (JSRef c)
 #endif
 
 #if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]($3, $4);"
     apply2 :: JSRef a -> JSString -> JSRef b -> JSRef c -> IO (JSRef d)
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2,$3,$4) => { return $1[$2]($3, $4); })($1,$2,$3,$4)"
+#else
 foreign import javascript unsafe "(($1,$2,$3,$4) => { return $1[$2]($3, $4); })"
+#endif
     apply2 :: JSRef a -> JSString -> JSRef b -> JSRef c -> IO (JSRef d)
 #endif
 
@@ -166,8 +185,12 @@ foreign import javascript unsafe "(($1,$2,$3,$4) => { return $1[$2]($3, $4); })"
 foreign import javascript unsafe "$r = $1[$2]($3, $4, $5);"
     apply3 :: JSRef a -> JSString
            -> JSRef b -> JSRef c -> JSRef d -> IO (JSRef e)
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { return $1[$2]($3, $4, $5); })($1,$2,$3,$4,$5)"
+#else
 foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { return $1[$2]($3, $4, $5); })"
+#endif
     apply3 :: JSRef a -> JSString
            -> JSRef b -> JSRef c -> JSRef d -> IO (JSRef e)
 #endif

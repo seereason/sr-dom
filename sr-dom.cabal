@@ -14,7 +14,7 @@ flag Debug
      Manual: True
 
 library
-  if arch(javascript)
+  if (arch(javascript) || arch(wasm32))
      Buildable: True
      hs-source-dirs:      src
      default-language:    Haskell2010
@@ -36,17 +36,17 @@ library
        text,
        time
 
-  if !arch(javascript)
+  if !(arch(javascript) || arch(wasm32))
      Buildable: False
 
 executable sr-dom-test-client
   default-language:    Haskell2010
   hs-source-dirs:      tests
   main-is:             DOMTest.hs
-  if arch(javascript)
+  if (arch(javascript) || arch(wasm32))
      Buildable: True
      GHCJS-OPTIONS:       -Wno-missing-home-modules
      default-extensions:  OverloadedStrings, ScopedTypeVariables, TypeFamilies, ConstraintKinds
      build-depends:       base, sr-dom
-  if !arch(javascript)
+  if !(arch(javascript) || arch(wasm32))
      Buildable: False

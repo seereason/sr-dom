@@ -12,6 +12,9 @@
 
 module SeeReason.DOM.Types where
 
+#if defined(wasm32_HOST_ARCH)
+import GHCJS.Types (JSString(..))
+#endif
 import Control.Exception
 import Control.Monad.Except
 import Control.Monad (void, when)
@@ -25,7 +28,7 @@ import qualified GHCJS.DOM.Types as DOM -- (Element, Event, IsEvent)
 import GHCJS.DOM.Event (Event, IsEvent, toEvent)
 #if __GHCJS__
 import GHCJS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
 import GHC.JS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
 #endif
 import GHCJS.Foreign
@@ -88,16 +91,32 @@ instance (JSValue a, JSValue b, JSValue c) => JSArgs (a, b, c) where
         fromJSValue res
 
 
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "let $r; $r = $1[$2](); return $r;"
+#else
 foreign import javascript unsafe "$r = $1[$2]();"
+#endif
     apply0 :: JSVal -> JSString -> IO (JSRef b)
 
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "let $r; $r = $1[$2]($3); return $r;"
+#else
 foreign import javascript unsafe "$r = $1[$2]($3);"
+#endif
     apply1 :: JSRef a -> JSString -> JSRef b -> IO (JSRef c)
 
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "let $r; $r = $1[$2]($3, $4); return $r;"
+#else
 foreign import javascript unsafe "$r = $1[$2]($3, $4);"
+#endif
     apply2 :: JSRef a -> JSString -> JSRef b -> JSRef c -> IO (JSRef d)
 
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "let $r; $r = $1[$2]($3, $4, $5); return $r;"
+#else
 foreign import javascript unsafe "$r = $1[$2]($3, $4, $5);"
+#endif
     apply3 :: JSRef a -> JSString
            -> JSRef b -> JSRef c -> JSRef d -> IO (JSRef e)
 #endif

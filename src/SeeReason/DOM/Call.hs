@@ -12,6 +12,9 @@ module SeeReason.DOM.Call
   , JSArgs(..)
   ) where
 
+#if defined(wasm32_HOST_ARCH)
+import GHCJS.Types (JSString(..))
+#endif
 import Control.Monad.Trans
 import SeeReason.DOM.Types (DOM(..))
 
@@ -20,7 +23,7 @@ import qualified GHCJS.DOM.MouseEvent as GD (MouseEvent(..), getButton, getClien
 import GHCJS.DOM.Event as GD (Event(..), IsEvent, toEvent)
 #if __GHCJS__
 import GHCJS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
 import GHC.JS.Foreign.Callback (OnBlocked(..), Callback, asyncCallback, asyncCallback1, releaseCallback, syncCallback1)
 #endif
 import GHCJS.Foreign
@@ -82,31 +85,47 @@ instance (PToJSVal a, PToJSVal b, PToJSVal c) => JSArgs (a, b, c) where
 #if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]();"
     apply0 :: IsGObject o => o -> JSString -> IO JSVal
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2) => { return $1[$2](); })($1,$2)"
+#else
 foreign import javascript unsafe "(($1,$2) => { return $1[$2](); })"
+#endif
     apply0 :: IsGObject o => o -> JSString -> IO JSVal
 #endif
 
 #if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]($3);"
     apply1 :: IsGObject o => o -> JSString -> JSVal -> IO JSVal
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2,$3) => { return $1[$2]($3); })($1,$2,$3)"
+#else
 foreign import javascript unsafe "(($1,$2,$3) => { return $1[$2]($3); })"
+#endif
     apply1 :: IsGObject o => o -> JSString -> JSVal -> IO JSVal
 #endif
 
 #if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]($3, $4);"
     apply2 :: IsGObject o => o -> JSString -> JSVal -> JSVal -> IO JSVal
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2,$3,$4) => { return $1[$2]($3,$4); })($1,$2,$3,$4)"
+#else
 foreign import javascript unsafe "(($1,$2,$3,$4) => { return $1[$2]($3,$4); })"
+#endif
     apply2 :: IsGObject o => o -> JSString -> JSVal -> JSVal -> IO JSVal
 #endif
 
 #if __GHCJS__
 foreign import javascript unsafe "$r = $1[$2]($3, $4, $5);"
     apply3 :: IsGObject o => o -> JSString -> JSVal -> JSVal -> JSVal -> IO JSVal
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { return $1[$2]($3,$4,$5); })($1,$2,$3,$4,$5)"
+#else
 foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { return $1[$2]($3,$4,$5); })"
+#endif
     apply3 :: IsGObject o => o -> JSString -> JSVal -> JSVal -> JSVal -> IO JSVal
 #endif

@@ -20,6 +20,14 @@ module SeeReason.DOM.JS
   , waitReady
   ) where
 
+#if defined(wasm32_HOST_ARCH)
+import GHC.JS.Foreign.Callback (Callback(..))
+import GHCJS.DOM.Types (Document(..))
+import GHCJS.DOM.Types (Element(..))
+import GHCJS.DOM.Types (EventTarget(..))
+import GHCJS.Types (JSString(..))
+import GHCJS.DOM.Types (Window(..))
+#endif
 import Control.Concurrent (threadDelay)
 import Control.Monad.Trans
 import Control.Monad.Except
@@ -40,8 +48,12 @@ getElementById doc ident = DOM $ do
 #if defined(__GHCJS__)
 foreign import javascript unsafe "$r = ($1).getElementById($2)"
   js_getElementById :: Document -> JSString -> IO Element
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((a1,a2) => { return (a1).getElementById(a2); })($1,$2)"
+#else
 foreign import javascript unsafe "((a1,a2) => { return (a1).getElementById(a2); })"
+#endif
   js_getElementById :: Document -> JSString -> IO Element
 #endif
 
@@ -53,8 +65,12 @@ createElement doc tag = DOM $ do
 #if defined(__GHCJS__)
 foreign import javascript unsafe "$r = ($1).createElement($2)"
   js_createElement :: Document -> JSString -> IO Element
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((a1,a2) => { return (a1).createElement(a2); })($1,$2)"
+#else
 foreign import javascript unsafe "((a1,a2) => { return (a1).createElement(a2); })"
+#endif
   js_createElement :: Document -> JSString -> IO Element
 #endif
 
@@ -66,8 +82,12 @@ createTextNode doc t = DOM $ do
 #if defined(__GHCJS__)
 foreign import javascript unsafe "$r = ($1).createTextNode($2)"
   js_createTextNode :: Document -> JSString -> IO Element
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((a1,a2) => { return (a1).createTextNode(a2); })($1,$2)"
+#else
 foreign import javascript unsafe "((a1,a2) => { return (a1).createTextNode(a2); })"
+#endif
   js_createTextNode :: Document -> JSString -> IO Element
 #endif
 
@@ -79,8 +99,12 @@ setAttribute e name value = DOM $ do
 #if defined(__GHCJS__)
 foreign import javascript unsafe "($1).setAttribute($2,$3)"
   js_setAttribute :: Element -> JSString -> JSString -> IO ()
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((a1,a2,a3) => { (a1).setAttribute(a2,a3); })($1,$2,$3)"
+#else
 foreign import javascript unsafe "((a1,a2,a3) => { (a1).setAttribute(a2,a3); })"
+#endif
   js_setAttribute :: Element -> JSString -> JSString -> IO ()
 #endif
 
@@ -92,8 +116,12 @@ removeAttribute e name = DOM $ do
 #if defined(__GHCJS__)
 foreign import javascript unsafe "($1).removeAttribute($2)"
   js_removeAttribute :: Element -> JSString -> IO ()
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((a1,a2) => { (a1).removeAttribute(a2); })($1,$2)"
+#else
 foreign import javascript unsafe "((a1,a2) => { (a1).removeAttribute(a2); })"
+#endif
   js_removeAttribute :: Element -> JSString -> IO ()
 #endif
 
@@ -107,8 +135,12 @@ setProperty e name value = DOM $ do
 #if defined(__GHCJS__)
 foreign import javascript unsafe "($1)[$2]=($3)"
   js_setProperty :: Element -> JSString -> JSVal -> IO ()
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((a1,a2,a3) => { (a1)[a2]=(a3); })($1,$2,$3)"
+#else
 foreign import javascript unsafe "((a1,a2,a3) => { (a1)[a2]=(a3); })"
+#endif
   js_setProperty :: Element -> JSString -> JSVal -> IO ()
 #endif
 
@@ -120,8 +152,12 @@ deleteProperty e name = DOM $ do
 #if defined(__GHCJS__)
 foreign import javascript unsafe "delete ($1)[$2]"
   js_deleteProperty :: Element -> JSString -> IO ()
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((a1,a2) => { delete (a1)[a2]; })($1,$2)"
+#else
 foreign import javascript unsafe "((a1,a2) => { delete (a1)[a2]; })"
+#endif
   js_deleteProperty :: Element -> JSString -> IO ()
 #endif
 
@@ -133,8 +169,12 @@ window = DOM $ do
 #if defined(__GHCJS__)
 foreign import javascript unsafe "$r = window"
   js_window :: IO Window
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "(() => { return window; })()"
+#else
 foreign import javascript unsafe "(() => { return window; })"
+#endif
   js_window :: IO Window
 #endif
 
@@ -146,8 +186,12 @@ document = DOM $ do
 #if defined(__GHCJS__)
 foreign import javascript unsafe "$r = document"
   js_document :: IO Document
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "(() => { return document; })()"
+#else
 foreign import javascript unsafe "(() => { return document; })"
+#endif
   js_document :: IO Document
 #endif
 
@@ -166,8 +210,12 @@ getProperty obj prop = DOM $ do
 #if defined(__GHCJS__)
 foreign import javascript unsafe "$r = $1[$2]"
   js_getProp :: JSVal -> JSString -> IO JSVal
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((a1,a2) => { return a1[a2]; })($1,$2)"
+#else
 foreign import javascript unsafe "((a1,a2) => { return a1[a2]; })"
+#endif
   js_getProp :: JSVal -> JSString -> IO JSVal
 #endif
 #endif
@@ -180,8 +228,12 @@ body = DOM . liftIO . js_body
 #if defined(__GHCJS__)
 foreign import javascript unsafe "$r = $1.body"
   js_body :: Document -> IO Element
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((a1) => { return a1.body; })($1)"
+#else
 foreign import javascript unsafe "((a1) => { return a1.body; })"
+#endif
   js_body :: Document -> IO Element
 #endif
 
@@ -193,8 +245,12 @@ appendChild parent child = DOM . liftIO $ do
 #if defined(__GHCJS__)
 foreign import javascript unsafe "$1.appendChild($2)"
    js_appendChild :: Element -> Element -> IO ()
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((a1,a2) => { a1.appendChild(a2); })($1,$2)"
+#else
 foreign import javascript unsafe "((a1,a2) => { a1.appendChild(a2); })"
+#endif
    js_appendChild :: Element -> Element -> IO ()
 #endif
 
@@ -214,8 +270,12 @@ waitReady' (delayTime, retryCount) doc = do
 #if defined(__GHCJS__)
 foreign import javascript unsafe "$r = $1[\"readyState\"]"
   js_readyState :: Document -> IO JSString
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((a1) => { return a1[\"readyState\"]; })($1)"
+#else
 foreign import javascript unsafe "((a1) => { return a1[\"readyState\"]; })"
+#endif
   js_readyState :: Document -> IO JSString
 #endif
 
@@ -239,24 +299,40 @@ foreign import javascript unsafe
         "$1.removeEventListener($2, $3, { capture: $4, once: $5, passive: $6})"
         removeEventListenerOpt ::
         EventTarget -> JSString -> Callback a -> Bool -> Bool -> Bool -> IO Bool
-#elif defined(javascript_HOST_ARCH)
+#elif (defined(javascript_HOST_ARCH) || defined(wasm32_HOST_ARCH))
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((self,evtype,cb,useCapture) => { return self[\"addEventListener\"](evtype, cb, useCapture); })($1,$2,$3,$4)"
+#else
 foreign import javascript unsafe
         "((self,evtype,cb,useCapture) => { return self[\"addEventListener\"](evtype, cb, useCapture); })"
+#endif
         addEventListener ::
         EventTarget -> JSString -> Callback a -> Bool -> IO ()
 
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((self,evtype,cb,useCapture) => { return self[\"removeEventListener\"](evtype,cb,useCapture); })($1,$2,$3,$4)"
+#else
 foreign import javascript unsafe
         "((self,evtype,cb,useCapture) => { return self[\"removeEventListener\"](evtype,cb,useCapture); })"
+#endif
         removeEventListener ::
         EventTarget -> JSString -> Callback a -> Bool -> IO Bool
 
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((self,evtype,cb,capture,once,passive) => { return self[\"addEventListener\"](evtype, cb, { capture: capture, once: once, passive: passive}); })($1,$2,$3,$4,$5,$6)"
+#else
 foreign import javascript unsafe
         "((self,evtype,cb,capture,once,passive) => { return self[\"addEventListener\"](evtype, cb, { capture: capture, once: once, passive: passive}); })"
+#endif
         addEventListenerOpt ::
         EventTarget -> JSString -> Callback a -> Bool -> Bool -> Bool -> IO ()
 
+#if defined(wasm32_HOST_ARCH)
+foreign import javascript unsafe "((self,evtype,cb,capture,once,passive) => { return self[\"removeEventListener\"](evtype, cb, { capture: capture, once: once, passive: passive}); })($1,$2,$3,$4,$5,$6)"
+#else
 foreign import javascript unsafe
         "((self,evtype,cb,capture,once,passive) => { return self[\"removeEventListener\"](evtype, cb, { capture: capture, once: once, passive: passive}); })"
+#endif
         removeEventListenerOpt ::
         EventTarget -> JSString -> Callback a -> Bool -> Bool -> Bool -> IO Bool
 #endif
